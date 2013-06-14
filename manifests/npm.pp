@@ -15,6 +15,7 @@ define nodejs::npm (
   $install_opt = undef,
   $remove_opt  = undef
 ) {
+  Class['nodejs'] -> Nodejs::Npm[$name]
   include nodejs
 
   $npm = split($name, ':')

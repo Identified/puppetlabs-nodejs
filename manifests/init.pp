@@ -29,13 +29,11 @@ class nodejs(
     }
 
     'Ubuntu': {
+      # Normally we wouldn't want to do this, but the default Ubuntu packaged
+      # version of nodejs is too outdated in 12.04
       include 'apt'
-
-      # Only use PPA when necessary.
-      if $::lsbdistcodename != 'Precise'{
-        apt::ppa { 'ppa:chris-lea/node.js':
-          before => Anchor['nodejs::repo'],
-        }
+      apt::ppa { 'ppa:chris-lea/node.js':
+        before => Anchor['nodejs::repo'],
       }
     }
 
@@ -65,14 +63,17 @@ class nodejs(
 
   package { 'nodejs':
     name    => $nodejs::params::node_pkg,
-    ensure  => present,
+    ensure  => latest,
     require => Anchor['nodejs::repo']
   }
 
-  package { 'npm':
-    name    => $nodejs::params::npm_pkg,
-    ensure  => present,
-    require => Anchor['nodejs::repo']
+  # Yes... some ugliness here...
+  if ! defined(Apt::Ppa['ppa:chris-lea/node.js']) {
+    package { 'npm':
+      name    => $nodejs::params::npm_pkg,
+      ensure  => present,
+      require => Anchor['nodejs::repo']
+    }
   }
 
   if $proxy {
