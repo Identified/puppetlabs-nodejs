@@ -45,7 +45,7 @@ describe 'nodejs', :type => :class do
       'require' => 'Anchor[nodejs::repo]',
     }) }
     it { should contain_package('nodejs-dev') }
-    it { should contain_package('npm').with({
+    it { should_not contain_package('npm').with({
       'name'    => 'npm',
       'require' => 'Anchor[nodejs::repo]',
     }) }
@@ -87,26 +87,15 @@ describe 'nodejs', :type => :class do
   end
 
   describe 'when deploying with proxy' do
-    let :facts do
-      {
-        :operatingsystem => 'Ubuntu',
-        :lsbdistcodename => 'edgy',
-      }
+    let(:params) { {proxy: 'http://proxy.puppetlabs.lan:80/'} }
+    context 'Ubuntu' do
+      let(:facts) { {operatingsystem: 'Ubuntu', lsbdistcodename: 'edgy' } }
+      it { should contain_exec('npm_proxy').with({
+                                                     'command' => 'npm config set proxy http://proxy.puppetlabs.lan:80/',
+                                                     'require' => 'Package[nodejs]',
+                                                 }) }
+      it { should_not contain_package('nodejs-stable-release') }
     end
-
-    let :params do
-      { :proxy => 'http://proxy.puppetlabs.lan:80/' }
-    end
-
-    it { should contain_package('npm').with({
-      'name'    => 'npm',
-      'require' => 'Anchor[nodejs::repo]',
-    }) }
-    it { should contain_exec('npm_proxy').with({
-      'command' => 'npm config set proxy http://proxy.puppetlabs.lan:80/',
-      'require' => 'Package[npm]',
-    }) }
-    it { should_not contain_package('nodejs-stable-release') }
   end
 
 end
